@@ -22,6 +22,7 @@ import (
 
 	"github.com/mozilla-services/heka/message"
 	"github.com/mozilla-services/heka/pipeline"
+	"github.com/mozilla-services/heka/plugins"
 	"github.com/pborman/uuid"
 )
 
@@ -88,13 +89,27 @@ func (di *DockerLogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) 
 			pack.Message.SetType("DockerLog")
 			pack.Message.SetLogger(logline.Type) // stderr or stdout
 			pack.Message.SetHostname(hostname)   // Use the host's hosntame
-			pack.Message.SetPayload(logline.Data)
+			//pack.Message.SetPayload(logline.Data)
 			pack.Message.SetTimestamp(time.Now().UnixNano())
 			pack.Message.SetUuid(uuid.NewRandom())
+			containerName := ""
+			containerID := ""
 			for k, v := range logline.Fields {
 				message.NewStringField(pack.Message, k, v)
+				if k == "ContainerName" {
+					containerName = v
+				}
+				if k == "ContainerID" {
+					containerID = v
+				}
 			}
 
+			mk, ok := plugins.M1["/"+containerName]
+			if !ok {
+				break
+			}
+			msg := plugins.SendMessage(mk, logline.Data, containerID)
+			pack.Message.SetPayload(msg)
 			ir.Deliver(pack)
 
 		case err, ok = <-di.attachErrors:

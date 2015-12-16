@@ -150,6 +150,8 @@ function(add_external_plugin vcs url tag)
     set(PLUGIN_LOADER ${PLUGIN_LOADER} ${_packages} PARENT_SCOPE)
 endfunction(add_external_plugin)
 
+git_clone(https://github.com/Jeffail/gabs b69c9e648a2529c8d7b927ba7f87bc7fe0b3b0ea)
+git_clone(https://github.com/cihub/seelog 70533ec7eda7e0a1487181f50c26138861a7950c)
 git_clone(https://github.com/rafrombrc/gomock c922279faf77f29ce5781e96eb0711837fcb477c)
 add_custom_command(TARGET gomock POST_BUILD
 COMMAND ${GO_EXECUTABLE} install github.com/rafrombrc/gomock/mockgen)
