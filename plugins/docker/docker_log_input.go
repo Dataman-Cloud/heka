@@ -105,10 +105,10 @@ func (di *DockerLogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) 
 			}
 
 			mk, ok := plugins.M1["/"+containerName]
-			if !ok {
-				break
+			msg := ""
+			if ok {
+				msg = plugins.SendMessage(mk, logline.Data, containerID)
 			}
-			msg := plugins.SendMessage(mk, logline.Data, containerID)
 			pack.Message.SetPayload(msg)
 			ir.Deliver(pack)
 

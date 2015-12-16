@@ -30,6 +30,7 @@ import (
 	"sync"
 
 	"github.com/carlanton/go-dockerclient"
+	"github.com/mozilla-services/heka/plugins"
 )
 
 type AttachEvent struct {
@@ -116,6 +117,11 @@ func (m *AttachManager) recvDockerEvents() {
 	for msg := range m.events {
 		if msg.Status == "start" {
 			go m.attach(msg.ID[:12])
+		} else if msg.Status == "stop" {
+			listc, err := m.client.ListContainers(docker.ListContainersOptions{})
+			if err == nil {
+				plugins.DeleteCounter(listc)
+			}
 		}
 	}
 	close(m.errors)

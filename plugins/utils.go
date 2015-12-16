@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Jeffail/gabs"
+	"github.com/carlanton/go-dockerclient"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -234,7 +235,7 @@ func HttpGet(url string) (string, error) {
 func SendMessage(cn, msg, cid string) string {
 	counter[cid]++
 	t := time.Now()
-	timestr := t.Format("2006-01-02T15:04:05.000Z")
+	timestr := t.Format("2006-01-02T15:04:05.895+08:00")
 	logmsg := timestr + " " +
 		UserId + " " +
 		fmt.Sprint(counter[cid]) + " " +
@@ -285,4 +286,21 @@ func persistenCounter() {
 			fmt.Println("persisten counter failed: ", err)
 		}
 	}
+}
+
+func DeleteCounter(containers []docker.APIContainers) {
+	copycounter := counter
+	for _, container := range containers {
+		_, ok := copycounter[container.ID[:12]]
+		if ok {
+			delete(copycounter, container.ID[:12])
+		}
+	}
+
+	counterlock.Lock()
+	for k, _ := range copycounter {
+		_, ok := counter[k]
+		delete(counter, k)
+	}
+	counterlock.Unlock()
 }
