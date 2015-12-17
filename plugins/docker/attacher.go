@@ -118,6 +118,10 @@ func (m *AttachManager) recvDockerEvents() {
 		if msg.Status == "start" {
 			go m.attach(msg.ID[:12])
 		} else if msg.Status == "stop" {
+			container, err := m.client.InspectContainer(msg.ID)
+			if err == nil {
+				plugins.DeleteM1(container.Name)
+			}
 			listc, err := m.client.ListContainers(docker.ListContainersOptions{})
 			if err == nil {
 				plugins.DeleteCounter(listc)
@@ -175,6 +179,9 @@ func (m *AttachManager) attach(id string) {
 		m.Lock()
 		m.attached[id] = NewLogPump(outrd, errrd, name, fields)
 		m.Unlock()
+
+		plugins.ReceiveContainer(container) //myself
+
 		success <- struct{}{}
 		m.send(&AttachEvent{ID: id, Name: name, Type: "attach"})
 		return
