@@ -239,7 +239,8 @@ func HttpGet(url string) (string, error) {
 func SendMessage(cn, msg, cid string) string {
 	counter[cid]++
 	t := time.Now()
-	timestr := t.Format("2006-01-02T15:04:05.895+08:00")
+	//timestr := t.Format("2006-01-02T15:04:05.895+08:00")
+	timestr := t.Format(time.RFC3339Nano)
 	logmsg := timestr + " " +
 		UserId + " " +
 		fmt.Sprint(counter[cid]) + " " +
