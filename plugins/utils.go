@@ -236,7 +236,7 @@ func HttpGet(url string) (string, error) {
 	return string(body), err
 }
 
-func SendMessage(cn, msg, cid string) string {
+/*func SendMessage(cn, msg, cid string) string {
 	counter[cid]++
 	t := time.Now()
 	//timestr := t.Format("2006-01-02T15:04:05.895+08:00")
@@ -251,6 +251,28 @@ func SendMessage(cn, msg, cid string) string {
 		cn + " " +
 		msg
 	return logmsg
+}*/
+
+func SendMessage(cn, msg, cid string, container *gabs.Container) {
+	counter[cid]++
+	t := time.Now()
+	timestr := t.Format(time.RFC3339Nano)
+	container.Set(timestr, "timestamp")
+	container.Set(UserId, "userid")
+	container.Set(counter[cid], "counter")
+	container.Set(ClusterId, "clusterid")
+	container.Set(UUID, "uuid")
+	container.Set(IP, "ip")
+	container.Set(Hostname, "hostname")
+	ars := strings.Split(cn, " ")
+	if len(ars) == 3 {
+		container.Set(ars[0], "typename")
+		container.Set(ars[1], "taskid")
+		container.Set(ars[2], "ports")
+		container.Set(msg, "msg")
+	} else {
+		container.Set("", "msg")
+	}
 }
 
 func loadCounter() {

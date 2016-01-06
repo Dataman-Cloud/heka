@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Jeffail/gabs"
 	"github.com/mozilla-services/heka/message"
 	"github.com/mozilla-services/heka/pipeline"
 	"github.com/mozilla-services/heka/plugins"
@@ -70,6 +71,7 @@ func (di *DockerLogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) 
 	var (
 		pack *pipeline.PipelinePack
 		ok   bool
+		msg  *gabs.Container
 	)
 
 	hostname := h.Hostname()
@@ -78,6 +80,7 @@ func (di *DockerLogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) 
 
 	// Get the InputRunner's chan to receive empty PipelinePacks
 	packSupply := ir.InChan()
+	msg = gabs.New()
 
 	ok = true
 	var err error
@@ -105,11 +108,14 @@ func (di *DockerLogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) 
 			}
 
 			mk, ok := plugins.M1["/"+containerName]
-			msg := ""
+			message := ""
 			if ok {
-				msg = plugins.SendMessage(mk, logline.Data, containerID)
+				//msg = plugins.SendMessage(mk, logline.Data, containerID)
+				plugins.SendMessage(mk, logline.Data, containerID, msg)
+				message = msg.String()
 			}
-			pack.Message.SetPayload(msg)
+			//pack.Message.SetPayload(msg)
+			pack.Message.SetPayload(message)
 			ir.Deliver(pack)
 
 		case err, ok = <-di.attachErrors:
